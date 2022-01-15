@@ -17,7 +17,7 @@ else ifeq ($(error-check),1)
 	CFLAGS += -ggdb  -g3 -gdwarf-2 -g -Wno-misleding-indentation -fgnu89-inline
 endif
 
-TARGET = mydemo
+TARGET = sort_func
 SRC = $(wildcard *.c) $(wildcard *.cpp)
 OBJ = $(patsubst %.c,%.o,$(SRC))
 		
@@ -26,7 +26,7 @@ OBJ = $(patsubst %.c,%.o,$(SRC))
 
 $(TARGET):$(OBJ)
 	$(CC) -o $(TARGET)   $(OBJ) $(CFLAGS) $(INCLUDE) $(LIBS)
-
+	rm -f *.o
 .PHONY : clean
 clean:
 	rm -f *.o	
