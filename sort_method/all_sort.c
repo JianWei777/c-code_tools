@@ -43,11 +43,12 @@ int sort_num_byorder(long proc_type ,int  num_count)
 		case(bubble_sort):
 			bubble_sort_func(num_buf , num_count);
 		break;
-/*
-   case(fast_sort):
+		
+		case(fast_sort):
 			fast_sort_func(num_buf , num_count);
 		break;
 		
+/*
 		case(simple_insert_sort):
 			simple_insert_sort_func(num_buf , num_count);
 		break;
