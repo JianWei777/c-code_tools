@@ -8,5 +8,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdint.h>
+#include<getopt.h>
 int bubble_sort_func(long* num_buffer , int num_count);
 int fast_sort_func(long* num_buffer , const int num_count);

@@ -1,8 +1,8 @@
 /*************************************************************************
-	> File Name: all_sort.c
-	> Author: JianWei
-	> Mail: wj_clear@163.com 
-	> Created Time: 2021年12月26日 星期日 19时03分35秒
+  > File Name: all_sort.c
+  > Author: JianWei
+  > Mail: wj_clear@163.com 
+  > Created Time: 2021年12月26日 星期日 19时03分35秒
  ************************************************************************/
 
 #include"all_sort.h"
@@ -28,8 +28,24 @@ static enum sort_type
 
 
 static long int num_buf[MAX_BUF_LEN];
-
-
+static long proc_type; 
+void show_usage()
+{
+	puts("usage: exe -m/--method sort_type  N1 N2 N3 N4 ...Nx");
+	puts("sort type :");
+	puts("0  > 冒泡排序");
+	puts("1  > 快速排序");
+	puts("2  > 简单插入排序");
+	puts("3  > 希尔插入排序");
+	puts("4  > 简单选择排序");
+	puts("5  > 堆排序");
+	puts("6  > 二路归并排序");
+	puts("7  > 多路归并排序");
+	puts("8  > 计数排序");
+	puts("9	 > 桶排序");
+	puts("10 > 基数排序");
+	return;
+}
 /*********************************************
  *@brief	:
  *@param[in]:
@@ -42,80 +58,145 @@ int sort_num_byorder(long proc_type ,int  num_count)
 	{
 		case(bubble_sort):
 			bubble_sort_func(num_buf , num_count);
-		break;
-		
+			break;
+
 		case(fast_sort):
 			fast_sort_func(num_buf , num_count);
-		break;
-		
-/*
-		case(simple_insert_sort):
-			simple_insert_sort_func(num_buf , num_count);
-		break;
-		
-		case(simple_select_sort):
-			simple_select_sort_func(num_buf , num_count);
-		break;
-		
-		case(xier_insert_sort):
-			xier_insert_sort_func(num_buf , num_count);
-		break;
-		
-		case(heap_sort):
-			heap_sort_func(num_buf , num_count);
-		break;
-		
-		case(double_merge_sort):
-			double_merge_sort_func(num_buf , num_count);
-		break;
-		
-		case(muti_merge_sort):
-			muti_merge_sort_func(num_buf , num_count);
-		break;
-		
-		case(count_sort):
-			count_sort_func(num_buf , num_count);
-		break;
-		
-		case(bucket_sort):
-			bucket_sort_func(num_buf , num_count);
-		
-		break;
-		
-		case(basic_sort):
-			basic_sort_func(num_buf , num_count);
-		break;
-*/
+			break;
+
+			/*
+			   case(simple_insert_sort):
+			   simple_insert_sort_func(num_buf , num_count);
+			   break;
+
+			   case(simple_select_sort):
+			   simple_select_sort_func(num_buf , num_count);
+			   break;
+
+			   case(xier_insert_sort):
+			   xier_insert_sort_func(num_buf , num_count);
+			   break;
+
+			   case(heap_sort):
+			   heap_sort_func(num_buf , num_count);
+			   break;
+
+			   case(double_merge_sort):
+			   double_merge_sort_func(num_buf , num_count);
+			   break;
+
+			   case(muti_merge_sort):
+			   muti_merge_sort_func(num_buf , num_count);
+			   break;
+
+			   case(count_sort):
+			   count_sort_func(num_buf , num_count);
+			   break;
+
+			   case(bucket_sort):
+			   bucket_sort_func(num_buf , num_count);
+
+			   break;
+
+			   case(basic_sort):
+			   basic_sort_func(num_buf , num_count);
+			   break;
+			   */
 		default:
 			printf("sorry, we haven't support %ld sort_func\n" ,proc_type);
 			return -1;
-		break;
+			break;
 	}
 
 	return 0;
 }
+
+/**************************************
+ *note:
+	 struct option 
+	 {  
+		 const char *name;  
+		 int         has_arg;  
+		 int        *flag;  
+		 int         val;  
+	 };
+ *
+ *breif: deal with cmd_param
+ *retval: 0 for success
+ *************************************/
+static int deal_with_cmdline(int argc ,char** argv)
+{
+	int opcode;	 ///< 返回的操作码
+	int digit_optind = 0;
+
+	while (1) {
+		int this_option_optind = optind ? optind : 1;	///< 非常保守的初始化
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"method",	required_argument,	NULL,  'm' },
+			{"help",	no_argument,		NULL,  'h' },
+			{0,         0,                 0,  0 }
+		};
+
+		opcode = getopt_long(argc, argv, "m:h",
+				long_options, &option_index);
+		if (opcode == -1)
+			break;
+
+		switch (opcode) {
+			case 0:
+				printf("option %s", long_options[option_index].name);
+				if (optarg)
+					printf(" with arg %s", optarg);
+				printf("\n");
+				break;
+			case 'm':
+				if(optarg)
+					proc_type = atol(optarg);				
+				break;
+			case 'h':
+			case '?':
+				show_usage();
+				break;
+
+			default:
+				printf("?? getopt returned character code 0%o ??\n", opcode);
+		}
+	}
+
+	if (optind < argc) {
+		printf("non-option ARGV-elements: ");
+		while (optind < argc)
+			printf("%s ", argv[optind++]);
+		printf("\n");
+	}
+
+	for( int i =0 ; i < argc - optind ; i ++)
+		num_buf[i] = atol(argv[i + optind]);	///< fill global buffer use shell params
+	return 0;
+}
+
+
 /*********************************************
  *@brief	:
  *@param[in]:
  *@note		:
  *@retval	:
  * ******************************************/
-int main(int argc ,const char** argv)
+int main(int argc ,char** argv)
 {
 	static const uint8_t  default_type = bubble_sort ;
-	
+
 	int i = 0 , ret = -1;
 
-	if(argc < 3)
+	if(argc < 4)
 	{
-		printf("usage : exe [0-9] [num1 ... numN] \n ");
+		show_usage();
 		return -1;
 	}
 
-	for( i =0 ; i < argc - 2; i ++)
-		num_buf[i] = atol(argv[i + 2]);	///< fill global buffer use shell param 
-	
-	long proc_type = atol(argv[1]);
+	deal_with_cmdline(argc , argv);
+
 
 
 	if( proc_type < bubble_sort || proc_type >  basic_sort )
