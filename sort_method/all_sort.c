@@ -42,7 +42,7 @@ void show_usage()
 	puts("6  > 二路归并排序");
 	puts("7  > 多路归并排序");
 	puts("8  > 计数排序");
-	puts("9	 > 桶排序");
+	puts("9  > 桶排序");
 	puts("10 > 基数排序");
 	return;
 }
@@ -122,7 +122,7 @@ int sort_num_byorder(long proc_type ,int  num_count)
 	 };
  *
  *breif: deal with cmd_param
- *retval: 0 for success
+ *retval: num_param count
  *************************************/
 static int deal_with_cmdline(int argc ,char** argv)
 {
@@ -163,17 +163,18 @@ static int deal_with_cmdline(int argc ,char** argv)
 				printf("?? getopt returned character code 0%o ??\n", opcode);
 		}
 	}
-
+	int tmp;
 	if (optind < argc) {
+		tmp = optind ;
 		printf("non-option ARGV-elements: ");
 		while (optind < argc)
 			printf("%s ", argv[optind++]);
 		printf("\n");
 	}
 
-	for( int i =0 ; i < argc - optind ; i ++)
-		num_buf[i] = atol(argv[i + optind]);	///< fill global buffer use shell params
-	return 0;
+	for( int i =0 ; i < (argc - tmp ) ; i ++)
+		num_buf[i] = atol(argv[i + tmp]);	///< fill global buffer use shell params
+	return argc - tmp;
 }
 
 
@@ -195,9 +196,7 @@ int main(int argc ,char** argv)
 		return -1;
 	}
 
-	deal_with_cmdline(argc , argv);
-
-
+	int num = deal_with_cmdline(argc , argv);
 
 	if( proc_type < bubble_sort || proc_type >  basic_sort )
 	{
@@ -205,11 +204,11 @@ int main(int argc ,char** argv)
 		proc_type = default_type ; 
 	}
 
-	ret = sort_num_byorder(proc_type , argc - 2);	///< tell sort_func_type and num 
+	ret = sort_num_byorder(proc_type , num);	///< tell sort_func_type and num 
 	if(!ret)
 	{
 		printf("sort over! sorted list :\n");
-		for(i = 0 ; i < argc - 2; i++)
+		for(i = 0 ; i < num; i++)
 			printf("%ld " ,num_buf[i]);
 		putchar(10);
 	}
