@@ -11,3 +11,4 @@
 #include<getopt.h>
 int bubble_sort_func(long* num_buffer , int num_count);
 int fast_sort_func(long* num_buffer , const int num_count);
+int simple_insert_sort_func(long *num_buf ,const int num_count);

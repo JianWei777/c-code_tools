@@ -29,7 +29,7 @@ static enum sort_type
 
 static long int num_buf[MAX_BUF_LEN];
 static long proc_type; 
-void show_usage()
+static void show_usage()
 {
 	puts("usage: exe -m/--method sort_type  N1 N2 N3 N4 ...Nx");
 	puts("sort type :");
@@ -64,11 +64,11 @@ int sort_num_byorder(long proc_type ,int  num_count)
 			fast_sort_func(num_buf , num_count);
 			break;
 
-			/*
-			   case(simple_insert_sort):
-			   simple_insert_sort_func(num_buf , num_count);
-			   break;
+		case(simple_insert_sort):
+			simple_insert_sort_func(num_buf , num_count);
+			break;
 
+			/*
 			   case(simple_select_sort):
 			   simple_select_sort_func(num_buf , num_count);
 			   break;
