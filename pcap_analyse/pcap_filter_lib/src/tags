@@ -1,0 +1,19 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CC	Makefile	/^CC = gcc$/;"	m
+DFLAGS	Makefile	/^DFLAGS = fpic -shared$/;"	m
+LIBS	Makefile	/^LIBS = -L..\/libs -lpcap$/;"	m
+OBJ	Makefile	/^OBJ = $(patsubst %.c,%.o,$(SRC))$/;"	m
+PCAP_FILE_PATH	manger.c	15;"	d	file:
+PLATFORM	Makefile	/^PLATFORM = ..\/..\/$/;"	m
+SFLAGS	Makefile	/^SFLAGS = -c$/;"	m
+SRC	Makefile	/^SRC = $(wildcard *.c) $(wildcard *.cpp)$/;"	m
+TARGET	Makefile	/^TARGET = ..\/bin\/pcap_filter$/;"	m
+deal_with_cmdline	manger.c	/^static int deal_with_cmdline(int argc ,char** argv)$/;"	f	file:
+main	manger.c	/^int main(int argc ,char **argv)$/;"	f
+show_usage	manger.c	/^static void show_usage()$/;"	f	file:
+target_pcap_file	manger.c	/^static uint8_t target_pcap_file[PCAP_FILE_PATH];$/;"	v	file:
