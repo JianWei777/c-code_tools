@@ -17,11 +17,14 @@
 #include"pcap_analyse.h"
 #define PCAP_FILE_PATH  256
 #define PCAP_ERRBUF_SIZE 256
+#define PCAP_FRAME_MAX_LEN  65536
+
 static uint8_t target_pcap_file[PCAP_FILE_PATH];
-static pcap_t *g_pcap_handle;
+static FILE *g_pcap_fp;
 static volatile uint8_t g_print_flag;	///< 用于控制终端展示
 static uint64_t g_pkt_num;		///< 用于进行包计数
 static uint64_t g_ip_datasize;	///< 用于进行ip数据统计计数
+static uint8_t g_frame_data[PCAP_FRAME_MAX_LEN];	///< 用于暂存每一帧的数据，一般条件下足够存放
 /*展示工具用法*/
 static void show_usage()
 {
@@ -99,33 +102,30 @@ static int deal_with_cmdline(int argc ,char** argv)
     return argc - tmp;
 
 }
-/*
- *brief	：实现主要功能的回调接口
- *param[in]:
-		用户使用的指针（传参用）
-		帧头结构体指针	：指向每一帧的头部
-		帧头数据		:frame head + 链路head + 网络头 + 传输层头 + payload
- *retval : NULL
+/**
+ *@brief	:对每一帧的负载进行解析
+ *@param[in]:需要解析的负载
+ *@retval	:
  * */
-static void pcap_callback(u_char* argument, const struct pcap_pkthdr* packet_header, const u_char* packet_content)
+static int pcap_payload_analyse(uint8_t *frame_payload)
 {
-	g_pkt_num ++;
-	comm_eth_head_t *eth_head_ptr = NULL ;
-	comm_ip_head_t  *ip_head_ptr = NULL ;
-	comm_tcp_head_t *tcp_head_ptr = NULL;
-	comm_udp_head_t *udp_head_ptr = NULL;
+    comm_eth_head_t *eth_head_ptr = NULL ;
+    comm_ip_head_t  *ip_head_ptr = NULL ; 
+    comm_tcp_head_t *tcp_head_ptr = NULL;
+    comm_udp_head_t *udp_head_ptr = NULL;
 
-	eth_head_ptr = (comm_eth_head_t *)packet_content;
-	ip_head_ptr = (comm_ip_head_t*)(packet_content +  sizeof(comm_eth_head_t));
-	g_ip_datasize += ip_head_ptr->iplen;
+	eth_head_ptr = (comm_eth_head_t *)frame_payload;
+	ip_head_ptr = (comm_ip_head_t*)(frame_payload +  sizeof(comm_eth_head_t));
+	g_ip_datasize += ip_head_ptr->iplen;	///< 更新ip数据长度
+
 	if(ip_head_ptr->protocol == 6)	///<tcp协议
-		tcp_head_ptr = (comm_tcp_head_t*)(packet_content +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));
+		tcp_head_ptr = (comm_tcp_head_t*)(frame_payload +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));
 	else if(ip_head_ptr->protocol == 17)	///< udp协议
-		udp_head_ptr = (comm_udp_head_t *)(packet_content +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));
+		udp_head_ptr = (comm_udp_head_t *)(frame_payload +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));
 	else
 	{
 		printf("we just support tcp/udp protocol \n'");
-		return ;
+		return  -1 ;
 	}
 	
 	uint32_t tmp_sip = ip_head_ptr->src_ip;
@@ -152,8 +152,49 @@ static void pcap_callback(u_char* argument, const struct pcap_pkthdr* packet_hea
 				sip_buf , dip_buf,ip_head_ptr->protocol );
 
 	}
+	return 0;
+}
 
-	return ;
+/*
+ *brief	：实现主要功能的pcap逐帧遍历功能
+ *param[in]:
+ *retval : 0 for success 
+ * */
+static int pcap_analyse()
+{
+	pcap_file_t tmp_pcap_file_head;
+	frame_head_t tmp_frame_head;
+	int ret;	///< 接收fread的返回值
+
+	fread(&tmp_pcap_file_head , sizeof(tmp_pcap_file_head) , 1 ,g_pcap_fp);
+	if(tmp_pcap_file_head.magic != 0xA1B2C3D4)	///< 校验幻数
+	{
+		fprintf(stderr , "magic num check failed\n");
+		return -1;
+	}
+
+	if(tmp_pcap_file_head.linktype != 1)	///< 不是以太类型的我们也暂时不解析
+	{
+		fprintf(stderr , "just support common eth data");
+		return -1;
+	}
+
+	while(1)
+	{
+		ret = fread(&tmp_frame_head , 1 , sizeof(tmp_frame_head) , g_pcap_fp );
+		if(ret < sizeof(tmp_frame_head))
+		{
+			printf("analyse pcap over\n");
+			return 0;
+		}
+		g_pkt_num ++;	///< 增加计数
+
+		fread(g_frame_data , tmp_frame_head.Caplen , 1 ,g_pcap_fp );	///< 将pcap文件的数据读入全局静态内存
+		pcap_payload_analyse(g_frame_data);
+		bzero(g_frame_data ,  tmp_frame_head.Caplen);	///< 清理内存
+	}
+
+	return 0;
 }
 
 /*
@@ -164,13 +205,13 @@ static void pcap_callback(u_char* argument, const struct pcap_pkthdr* packet_hea
  * */
 int comm_init()
 {
-	char errbuf[PCAP_ERRBUF_SIZE] = {};
-	g_pcap_handle = pcap_open_offline(target_pcap_file , errbuf);
-	if(!g_pcap_handle)
+	g_pcap_fp = fopen(target_pcap_file , "rb");
+	if(!g_pcap_fp)
 	{
-		printf("%s" , errbuf);
+		printf("fopen %s failed\n" , target_pcap_file);
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -196,7 +237,7 @@ int main(int argc ,char **argv)
 		return -1;
 	}
 	
-	pcap_loop(g_pcap_handle , -1 ,pcap_callback ,NULL);	///< libpcap提供的句柄，循环解析 ，回调函数 ，用户自由支配的指针	
+	pcap_analyse();	///< 解析pcap的功能代码 
 
 	printf("proc over , pkts :%lu ip len :%lu\n" , g_pkt_num ,g_ip_datasize);
 	return 0;

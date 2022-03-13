@@ -5,8 +5,8 @@ DFLAGS = fpic -shared
 
 PLATFORM = ../../
 
-LIBS = -L../libs
-INCLUDE += -I../../
+LIBS = -L../libs 
+INCLUDE += -I../include
 
 
 ifeq ($(debug),1)
@@ -17,7 +17,7 @@ else ifeq ($(error-check),1)
 	CFLAGS += -ggdb  -g3 -gdwarf-2 -g -Wno-misleding-indentation -fgnu89-inline
 endif
 
-TARGET = sort_func
+TARGET = ../bin/pcap_filter
 SRC = $(wildcard *.c) $(wildcard *.cpp)
 OBJ = $(patsubst %.c,%.o,$(SRC))
 		
