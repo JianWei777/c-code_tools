@@ -7,7 +7,6 @@
 
 #include<stdio.h>
 #include<stdint.h>
-#include<pcap.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -116,7 +115,7 @@ static int pcap_payload_analyse(uint8_t *frame_payload)
 
 	eth_head_ptr = (comm_eth_head_t *)frame_payload;
 	ip_head_ptr = (comm_ip_head_t*)(frame_payload +  sizeof(comm_eth_head_t));
-	g_ip_datasize += ip_head_ptr->iplen;	///< 更新ip数据长度
+	g_ip_datasize += nths(ip_head_ptr->iplen);	///< 更新ip数据长度
 
 	if(ip_head_ptr->protocol == 6)	///<tcp协议
 		tcp_head_ptr = (comm_tcp_head_t*)(frame_payload +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));

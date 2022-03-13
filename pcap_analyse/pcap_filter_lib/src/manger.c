@@ -117,7 +117,7 @@ static void pcap_callback(u_char* argument, const struct pcap_pkthdr* packet_hea
 
 	eth_head_ptr = (comm_eth_head_t *)packet_content;
 	ip_head_ptr = (comm_ip_head_t*)(packet_content +  sizeof(comm_eth_head_t));
-	g_ip_datasize += ip_head_ptr->iplen;
+	g_ip_datasize += ntohs(ip_head_ptr->iplen);
 	if(ip_head_ptr->protocol == 6)	///<tcp协议
 		tcp_head_ptr = (comm_tcp_head_t*)(packet_content +  sizeof(comm_eth_head_t) + sizeof(comm_ip_head_t));
 	else if(ip_head_ptr->protocol == 17)	///< udp协议

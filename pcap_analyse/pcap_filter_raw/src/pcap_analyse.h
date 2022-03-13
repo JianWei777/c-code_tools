@@ -43,8 +43,8 @@ typedef struct _frame_head{
 
 
 typedef struct _comm_eth_head{
-	uint8_t src_mac[6];		///< 源mac地址
 	uint8_t dst_mac[6];		///< 目标mac地址
+	uint8_t src_mac[6];		///< 源mac地址
 	uint16_t type;			///<  请求类型  0x0800 ip数据 0x0806 arp 请求 0x8035 rarp 请求
 }comm_eth_head_t;
 
